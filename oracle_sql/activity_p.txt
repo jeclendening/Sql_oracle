@@ -1,0 +1,50 @@
+rem       Name : activity.sql    Type: start file report
+rem  Written by: by Jeffrey Clendening
+rem
+rem Description: Report on GB Talbot sales by product
+rem              during  1901
+
+
+set headsep !
+        
+ttitle 'Sales By Product 1901! Second Six Months (Jul-Dec)'
+btitle 'from G.B. TalBot''s Ledger'
+
+column Item heading 'What Was!Paid For'
+column Item format a18
+column Item Truncated
+
+
+column Person Heading 'TO Whom PAID' format a18 word_wrapped
+Column Rate format 90.99
+column ActionDate heading 'Date'
+column QuantityType heading 'Type' format a8 truncated
+column Quantity heading 'Quan' format 9990
+column Ext format 990.99
+break on Item skip 2
+compute sum of Ext on Item
+
+set linesize 79
+set pagesize 44
+set newpage 1
+
+spool activity.lst
+
+select ActionDate, Person, Item, Quantity, QuantityType,
+       Rate, Quantity * Rate "Ext"
+  from Ledger
+ where Action = 'PAID'            /* Last 6 months only */
+       and ActionDate BETWEEN
+                 TO_DATE('01-JAN-1901','DD-MON-YYYY') and 
+                 TO_DATE('31-DEC-1901','DD-MON-YYYY')
+order by Item, ActionDate;
+
+spool off
+
+
+
+
+
+
+ 
+ 

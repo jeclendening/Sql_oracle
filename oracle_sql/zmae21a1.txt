@@ -1,0 +1,82 @@
+-- ==============================================================
+-- SQL Name: cipms.sql
+--
+-- Purpose: Create CIPMS file populating UIC fields from the uic_codes table.   
+--  =======================
+-- Record layout:
+-- 1   - 187 FILLER  
+-- 188 - 193 UIC   
+-- 194 - 770 FILLER   
+-- 771 - 795 UIC_ORG   
+-- 796 - 812 UIC_LOCATION    
+-- 813 - 814 UIC_STATE     
+--  ========================
+-- Written by:  Jeffrey Clendening   
+--
+-- Date Written: 12/19/2005    
+--
+-- History of Modifications:
+-- Date       Programmer    Description
+-- =========  ============  ===========================================
+-- 
+--
+
+UPDATE TEMP_UIC_CIPMS a
+ set (UIC_ORG,UIC_LOCATION,UIC_STATE) = 
+(select UIC_ORG,UIC_LOCATION,UIC_STATE
+from uic_codes b  
+where a.UIC = b.unit_id_code);
+
+commit;
+
+UPDATE TEMP_UIC_CIPMS a
+set (UIC_STATE) =
+(select C.CODE_VALUE
+from HQACPERS_OWNER.GENERIC_CODES C,
+UIC_CODES B
+where a.UIC = b.unit_id_code
+and b.UIC_STATE = C.AFL_CODE_VALUE_1); 
+
+commit;
+
+
+UPDATE TEMP_UIC_CIPMS a
+set (UIC_STATE) = 
+(select b.UIC_STATE 
+from uic_codes b 
+where  a.UIC = b.unit_id_code)
+where a.UIC_STATE is null;
+
+commit;
+
+ 
+accept asofcur prompt 'Enter year and month of cycle date (YYMM): ';
+
+set pagesize 0
+set linesize 819
+set pause off
+set newpage 0
+set termout off
+set feedback off
+set heading off
+set verify off
+set echo off
+
+spool /hqacpers/reports/extracts/cpms&asofcur\.txt
+
+SELECT 
+rpad(nvl(filler1,' '),187)
+||rpad(nvl(uic,' '),6)
+||rpad(nvl(filler2,' '),577)
+||rpad(nvl(uic_org,' '),25)
+||'  '
+||rpad(nvl(uic_location,' '),17)
+||'  '
+||rpad(nvl(uic_state,' '),2)
+FROM TEMP_UIC_CIPMS;
+
+spool off
+set termout on
+set feedback on
+set heading on
+set verify on

@@ -1,0 +1,330 @@
+/* Script name: zmd57a1.sql
+
+   Description: Main CPMF extract file.
+
+   Programmer:  Andy Bauwens
+
+   Date:        June 2003
+
+*/
+
+-- Modification History:
+--
+-- DATE         PROGRAMMER    DESCRIPTION
+-- -----------  ------------  ---------------------------------------------------
+-- 21-Jun-2004  Andy Bauwens  Added conversion for rating_of_rcd code.
+-- 02-Aug-2004  Andy Bauwens  Adjusted basic_salary_rate to include cents.
+--                            Had to raise linesize from 1000 to 1001 because 
+--                            something in the above change makes the file bigger 
+--                            even though there is no physical column change.
+--                            Go figure... Maybe it is the to_char function?
+--
+-- 9-Oct-2004   Bauwens       Change the spool statement. Remove hqacpers_owner
+--                            owner name from all sql statements except the
+--                            combined_strength table. Let synonyms do the work.
+--
+-- 15-Dec-2004 Andy Bauwens   Change nvl(ssn) from # fill to spaces.
+--
+-- 13-Jan-2005 Andy Bauwens   exclude any blank ssn's.
+-- 18-Jan-2005 Andy Bauwens  Change spool statement to new directory path.
+--
+-- 02-Jun-2005 Jeffrey clendening change sql tro run under usr37 
+
+
+accept asofcur prompt 'Enter asofcur (i.e. me0212) for file zmd57a1: ';
+accept asofid prompt 'Enter asofid (i.e. yyyymm) for CPMF record selection: ';
+
+set heading off
+set feedback off
+set linesize 1000
+set pagesize 0
+set verify off
+set termout off
+ 
+alter session set nls_date_format = 'yyyymmdd';
+
+spool /usr37/local/development/reports/outputs/zma34c2.&asofcur;
+
+SELECT
+rpad(nvl(A.SSN,' '),9,' ')                       
+--rpad(nvl(A.SSN,'#'),9,'#')                       
+||rpad(nvl(A.NAME_PERS,' '),27)
+||rpad(nvl(A.NOA1,' '),3)
+||decode(to_char(nvl(A.DATE_EFFECTIVE,'30000101'),'yyyymmdd'),'30000101','00000000', A.DATE_EFFECTIVE)
+||nvl(A.SEX,' ')
+||lpad(nvl(A.RTND_LOCALITY_PCT,0) * 100,4,'0')
+||rpad(nvl(A.CCPO_ID,' '),2)
+||nvl(A.CITIZENSHIP,' ')
+||nvl(A.VET_PREF_APPT,' ')
+||nvl(A.TENURE_GP_EMPL,' ')
+||decode(to_char(nvl(A.SPEP_GRAD_DATE,'30000101'),'yyyymm'),'300001','000000', substr(A.SPEP_GRAD_DATE,1,6))
+||rpad(nvl(A.HANDCP_RPRTBL,' '),2)
+||nvl(A.WRK_SCHED,' ')
+||nvl(A.POS_TEN,' ')
+||rpad(nvl(A.CURR_PAY_PLAN,' '),2)
+||rpad(nvl(A.OCUPTNL_SRS,' '),4)
+||rpad(substr(nvl(ltrim(A.FUNCT_CLASS_IDF),' '),1,2),2)
+||lpad(nvl(A.POSN_GR_CIV,'0'),2,'0')
+--||lpad(to_number(nvl(A.POSN_GR_CIV,'0')),2,'0')
+--||lpad(to_number(nvl(A.STEP_IN_GRADE_CIV,0)),2,'0')
+||lpad(nvl(A.STEP_IN_GRADE_CIV,'0'),2,'0')
+||rpad(nvl(A.AGCY_CD,' '),2)
+||rpad(nvl(A.AGCY_SUB_ELM_FLAG,' '),2)
+||' '
+||rpad(nvl(A.PAY_BASIS,' '),2)
+||nvl(A.PAY_RATE_DETERM,' ')
+||nvl(A.ACQ_JOB_SPECIALTY_1,' ')
+||nvl(A.AQCSSC,' ')
+||rpad(nvl(A.UNIT_ID_CODE,' '),6)
+||rpad(nvl(A.GSA_GEOLOC,' '),9)
+||nvl(A.AR_FUNC_DESG,' ')
+||nvl(A.POSN_OCCUPD_ID,' ')
+||rpad(nvl(A.APP_TYPE,' '),2)
+||rpad(nvl(A.AR_PSN_CAR_PGM_CD,' '),2)
+||rpad(nvl(A.PAS_PERS_OFF_ID,' '),4)
+||rpad(nvl(A.COMP_LEV,' '),4)
+||rpad(nvl(A.AR_COMPT_AREA_CD,' '),2)
+||rpad(nvl(A.ACCESSIONS_DOD_HRNG_FRZ,' '),2)
+||nvl(A.PREV_RETIREMENT_COVG,' ')
+||rpad(nvl(A.HEALTH_PLANS,' '),2)
+||nvl(A.HEALTH_ENRLM,' ')
+||nvl(A.AR_FAMILY_MBR_STATUS,' ')
+||nvl(A.CIV_DUTY_STATUS_CONT,' ')
+||nvl(A.DRAWDOWN_ACTION_ID,' ')
+||nvl(A.RACE_NATIONAL_ORIGIN,' ')
+||nvl(A.PATCOB,' ')
+||rpad(nvl(A.GR_CIV_PERM,' '),2)
+||lpad(decode(length(trunc(A.HRS_SCH_WEEK)),0,round(A.HRS_SCH_WEEK),1,round(A.HRS_SCH_WEEK),2,round(A.HRS_SCH_WEEK),null,0,99),2,'0')
+||nvl(A.ACT_IND,' ')
+||nvl(A.PRV_SUPV_STATUS,' ')
+||rpad(nvl(A.PAY_TABLE_IDENT,' '),4)
+||rpad(nvl(A.PRV_PAS_PERS_OFF_ID,' '),4)
+||rpad(nvl(A.PRV_UNIT_ID_CODE,' '),6)
+||rpad(nvl(A.PRV_AGCY_SUB_ELM_FLAG,' '),2)
+||rpad(nvl(A.RTND_PAY_PLAN,' '),2)
+||lpad(nvl(A.RTND_GR_CIV,'0'),2,'0')
+--||lpad(to_number(nvl(A.RTND_GR_CIV,0)),2,'0')
+||decode(to_char(nvl(A.DATE_EOD_CURR_AGCY,'30000101'),'yyyymmdd'),'30000101','00000000', A.DATE_EOD_CURR_AGCY)
+||rpad(nvl(A.ACCESSION_NOA,' '),3)
+||rpad(nvl(A.TARGET_GR_CIV,' '),2)
+||rpad(nvl(A.SPECIAL_PROGRAM_ID,' '),2)
+||nvl(A.RETIRED_MILITARY_CODE,' ')
+||substr(nvl(A.FEGLI,' '),1,1)
+||nvl(A.RETIREMENT_PLAN,' ')
+||nvl(A.SUPV_STATUS,' ')
+||lpad(to_number(nvl(A.EDUC_LEVEL_CIV,0)),2,'0')
+||rpad(nvl(A.INSTRUCTIONAL_PROGRAM,' '),4)
+||nvl(A.ACQ_CORPS_QUALIFIED,' ')
+||nvl(A.AQCFLD,' ')
+||rpad(nvl(A.AWD_NOA,' '),3)
+||nvl(A.KEY_EMER_ESNTL_EMPL,' ')
+||decode(instr(A.AR_AMSCD,'.',7),null,rpad(' ',12),0,substr(rpad(nvl(A.AR_AMSCD,' '),12),1,6)||'.'||substr(rpad(nvl(A.AR_AMSCD,' '),12),7,5),rpad(A.AR_AMSCD,12))
+||lpad(to_number(nvl(A.RTND_STEP_IN_GRADE_CIV,0)),2,'0')
+||decode(to_char(nvl(A.MAND_RET_DATE_CIV,'30000101'),'yyyymmdd'),'30000101','00000000', A.MAND_RET_DATE_CIV)
+||nvl(A.ACQ_POSN_CAREER_CAT,' ')
+||rpad(nvl(A.BARG_UNIT_STAT,' '),4)
+||rpad(nvl(A.ORIG_APPT_AUTH_CD_1,' '),3)
+||rpad(nvl(A.LEG_AUT1,' '),3)
+||rpad(nvl(A.LEG_AUT2,' '),3)
+||nvl(A.VETERANS_STATUS,' ')
+||nvl(A.ANNUITANT_INDICATOR,' ')
+||nvl(A.FLSA_CAT,' ')
+||lpad(nvl(substr(A.CREDITABLE_MIL_SVC,1,4),'0'),4,'0')
+--||lpad(nvl(A.CREDITABLE_MIL_SVC,'0'),4,'0')
+||rpad(nvl(A.LANG_IDENT3,' '),2)
+||lpad(nvl(A.RETENTION_ALLOW,0),5,'0')
+||lpad(nvl(A.RECRUITMENT_BONUS,0),5,'0')
+||lpad(nvl(A.RELOCATION_BONUS,0),5,'0')
+||nvl(A.RESERVE_CATEGORY,' ')
+||lpad(nvl(A.AMT_INCTV_AWD,0),5,'0')
+||rpad(nvl(A.PRV_AGCY_CD,' '),2)
+||rpad(nvl(A.LANG_SPEAK_PROF3,' '),2)
+||nvl(A.POSN_WRK_SCHED,' ')
+||nvl(A.FERS_COVERAGE,' ')
+||decode(to_char(nvl(A.SCD_CIV_LEAVE,'30000101'),'yyyymmdd'),'30000101','00000000', A.SCD_CIV_LEAVE)
+||decode(to_char(nvl(A.SCD_CIV,'30000101'),'yyyymmdd'),'30000101','00000000', A.SCD_CIV)
+||decode(to_char(nvl(A.SCD_CIV_RIF,'30000101'),'yyyymmdd'),'30000101','00000000', A.SCD_CIV_RIF)
+||rpad(nvl(A.ORIG_APPT_AUTH_CD_2,' '),3)
+||rpad(nvl(A.CIV_AWARD_TYPE,' '),2)
+||decode(to_char(nvl(A.DT_OS_TOUR_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_OS_TOUR_EXPIR)
+||nvl(A.MOB_PSN_INDICATOR,' ')
+||lpad(to_number(nvl(substr(A.FROZEN_SERVICE,1,4),0)),4,'0')
+--||lpad(to_number(nvl(A.FROZEN_SERVICE,0)),4,'0')
+||rpad(nvl(A.LANG_IDENT4,' '),2)
+||nvl(A.VET_PREF_RIF,' ')
+||nvl(A.SPEP_CATEGORY,' ')
+||nvl(A.SPEP_INTAKE_SOURCE,' ')
+||rpad(nvl(A.SPEP_TRAINING_COMMAND,' '),2)
+||rpad(nvl(A.SPEP_ENTRY_PAY_PLAN,' '),2)
+||rpad(nvl(A.SPEP_ENTRY_SRS,' '),4)
+||lpad(nvl(A.SPEP_ENTRY_GRADE,0),2,'0')
+||rpad(nvl(A.SPEP_TARGET_PAY_PLAN,' '),2)
+||rpad(nvl(A.SPEP_TARGET_SRS,' '),4)
+||lpad(nvl(A.SPEP_TARGET_GRADE,0),2,'0')
+||decode(to_char(nvl(A.SPEP_ASSIGNMENT_DATE,'30000101'),'yyyymm'),'300001','000000', substr(A.SPEP_ASSIGNMENT_DATE,1,6))
+||decode(to_char(nvl(A.SPEP_PROP_GRAD_DATE,'30000101'),'yyyymm'),'300001','000000', substr(A.SPEP_PROP_GRAD_DATE,1,6))
+||nvl(A.SPEP_GRAD_LOSS,' ')
+||rpad(nvl(A.SPEP_DPTR_REASON,' '),2)
+||decode(to_char(nvl(A.DT_RTND_GRADE_BEG,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RTND_GRADE_BEG)
+||decode(to_char(nvl(A.DT_RTND_GRADE_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RTND_GRADE_EXPIR)
+||decode(to_char(nvl(A.DT_RT_PKG_RCVD_CIV_PAY,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RT_PKG_RCVD_CIV_PAY)
+||lpad(nvl(A.LOC_ADJ,0),5,'0')
+||lpad(nvl(A.STAFF_DIFF_PAY,0),5,'0')
+||lpad(nvl(A.SUPV_DIFF_PAY,0),5,'0')
+||decode(A.RATING_OF_RCD1,'5','E','4','H','3','L','2','M','1','U',null,' ',A.RATING_OF_RCD1)
+||decode(A.RATING_OF_RCD2,'5','E','4','H','3','L','2','M','1','U',null,' ',A.RATING_OF_RCD2)
+||decode(A.RATING_OF_RCD3,'5','E','4','H','3','L','2','M','1','U',null,' ',A.RATING_OF_RCD3)
+||decode(A.RATING_OF_RCD4,'5','E','4','H','3','L','2','M','1','U',null,' ',A.RATING_OF_RCD4)
+||decode(A.RATING_OF_RCD5,'5','E','4','H','3','L','2','M','1','U',null,' ',A.RATING_OF_RCD5)
+||decode(to_char(nvl(A.APPR_RATE_EFF_DATE1,'30000101'),'yyyymmdd'),'30000101','00000000', A.APPR_RATE_EFF_DATE1)
+||decode(to_char(nvl(A.APPR_RATE_EFF_DATE2,'30000101'),'yyyymmdd'),'30000101','00000000', A.APPR_RATE_EFF_DATE2)
+||decode(to_char(nvl(A.APPR_RATE_EFF_DATE3,'30000101'),'yyyymmdd'),'30000101','00000000', A.APPR_RATE_EFF_DATE3)
+||nvl(A.ACQ_PROG_IND,' ')
+||nvl(A.ACQ_CRIT_POSN_ID,' ')
+||rpad(substr(nvl(A.CPCN,' '),1,10),10)
+||rpad(nvl(A.POSN_TITLE,' '),54)
+||nvl(A.POSN_STATUS_IND_CIV,' ')
+||nvl(A.FAM_MBR_EMPL_PREF,' ')
+||rpad(nvl(A.EDP_HAZARD_TYPE1,' '),2)
+||rpad(nvl(A.EDP_HAZARD_TYPE2,' '),2)
+||rpad(nvl(A.EDP_HAZARD_TYPE3,' '),2)
+||rpad(nvl(A.EDP_HAZARD_TYPE4,' '),2)
+||rpad(nvl(A.EDP_HAZARD_TYPE5,' '),2)
+||decode(to_char(nvl(A.DT_LATEST_ENT_PRES_GR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_LATEST_ENT_PRES_GR)
+||lpad(nvl(A.YR_DEGREE_CERT_ATTAIN,0),4,'0')
+||nvl(A.KEY_EMER_ESNTL_POSN,' ')
+||nvl(A.EMPLOYEE_TYPE,' ')
+||rpad(nvl(A.RTND_PAY_BASIS,' '),2)
+||nvl(A.POSN_OBLIG_TYPE,' ')
+||rpad(nvl(A.ORG_FUNC_CD,' '),3)
+||rpad(nvl(A.AR_CIVILIAN_TYPE,' '),3)
+||lpad(to_number(nvl(A.GP_AWD_ID,0)),4,'0')
+||rpad(nvl(A.NOA2,' '),3)
+||nvl(A.TYPE_OF_EMPLMENT,' ')
+||rpad(nvl(A.AGCY_CD_TRANS_FR,' '),2)
+||rpad(nvl(A.AGCY_CD_TRANS_TO,' '),2)
+||nvl(A.MIL_RECALL_STATUS,' ')
+||decode(to_char(nvl(A.DT_SCTY_INVES_COMPL,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_SCTY_INVES_COMPL)
+||substr(nvl(A.PERS_SCTY_CLEAR_ELIG,' '),1,1)
+||substr(nvl(A.SCTY_INV_BASIS,' '),1,1)
+||nvl(A.POSN_SNSVY,' ')
+||nvl(A.INTELL_PSN_IND,' ')
+||rpad(nvl(A.LANG_IDENT1,' '),2)
+||rpad(nvl(A.LANG_LISTEN_PROF3,' '),2)
+||rpad(nvl(A.LANG_LISTEN_PROF4,' '),2)
+||rpad(nvl(A.LANG_LISTEN_PROF1,' '),2)
+||rpad(nvl(A.LANG_READ_PROF1,' '),2)
+||rpad(nvl(A.LANG_SPEAK_PROF1,' '),2)
+||rpad(nvl(A.LANG_IDENT2,' '),2)
+||rpad(nvl(A.SEP_FR_ROLLS_RSN,' '),2)
+||nvl(A.ACQ_CAREER_LEVEL_ACHVD,' ')
+||decode(to_char(nvl(A.DT_ARR_SVCG_CCPO,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_ARR_SVCG_CCPO)
+||nvl(A.AQSPAS,' ')
+||nvl(A.AR_POSN_MGMT_STAT,' ')
+||nvl(A.PREM_PAY_IND,' ')
+||rpad(nvl(A.AR_TDA_LINE_NO,' '),3)
+||rpad(nvl(A.AR_TDA_PARA_NR,' '),4)
+||rpad(nvl(A.LANG_READ_PROF3,' '),2)
+||rpad(nvl(A.LANG_READ_PROF4,' '),2)
+||rpad(nvl(A.LANG_LISTEN_PROF2,' '),2)
+||rpad(nvl(A.LANG_READ_PROF2,' '),2)
+||rpad(nvl(A.LANG_SPEAK_PROF2,' '),2)
+||rpad(nvl(A.AR_PROP_CAREER_FLD_ID,' '),2)
+||rpad(nvl(A.UIC_CTY,' '),17)
+||rpad(nvl(A.UIC_ORG,' '),25)
+||rpad(nvl(A.DY_STAT_CIV,' '),2)
+||nvl(A.WELFARE_TO_WORK,' ')
+||rpad(nvl(A.RTND_OCUPTNL_SRS,' '),4)
+||decode(to_char(nvl(A.DT_OBLN_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_OBLN_EXPIR)
+||'  '
+||rpad(nvl(A.LANG_SPEAK_PROF4,' '),2)
+||rpad(nvl(A.UIC_STATE,' '),2)
+||lpad(decode(length(trunc(A.BASIC_SALARY_RATE)),
+0,to_number(to_char(A.BASIC_SALARY_RATE,'000000v90')),
+1,to_number(to_char(A.BASIC_SALARY_RATE,'000009v00')),
+2,to_number(to_char(A.BASIC_SALARY_RATE,'000099v90')),
+3,to_number(to_char(A.BASIC_SALARY_RATE,'000999v00')),
+4,to_number(to_char(A.BASIC_SALARY_RATE,'009999v90')),
+5,to_number(to_char(A.BASIC_SALARY_RATE,'099999v00')),
+6,to_number(to_char(A.BASIC_SALARY_RATE,'999999v90')),
+null,'00000000',99999999)
+,8,'0')
+--||lpad(decode(length(trunc(A.BASIC_SALARY_RATE)),0,round(A.BASIC_SALARY_RATE),
+--1,round(A.BASIC_SALARY_RATE),2,round(A.BASIC_SALARY_RATE),
+--3,round(A.BASIC_SALARY_RATE),4,round(A.BASIC_SALARY_RATE),
+--5,round(A.BASIC_SALARY_RATE),6,round(A.BASIC_SALARY_RATE),
+--7,round(A.BASIC_SALARY_RATE),8,round(A.BASIC_SALARY_RATE),null,0,99999999),8,'0')
+----||trim(decode(length(trunc(A.BASIC_SALARY_RATE)),0,to_char(A.BASIC_SALARY_RATE,'000000v90'),
+----1,to_char(A.BASIC_SALARY_RATE,'000009v00'),2,to_char(A.BASIC_SALARY_RATE,'000099v90'),
+----3,to_char(A.BASIC_SALARY_RATE,'000999v00'),4,to_char(A.BASIC_SALARY_RATE,'009999v90'),
+----5,to_char(A.BASIC_SALARY_RATE,'099999v00'),6,to_char(A.BASIC_SALARY_RATE,'999999v90'),
+----null,'00000000',99999999))
+||decode(to_char(nvl(A.DT_RET_APPL_RCVD_CCPO,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RET_APPL_RCVD_CCPO)
+||decode(to_char(nvl(A.DT_LIMITED_APPT_EXP,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_LIMITED_APPT_EXP)
+||decode(to_char(nvl(A.AR_APPR_PERF_RATE_DUE_DT,'30000101'),'yyyymmdd'),'30000101','00000000', A.AR_APPR_PERF_RATE_DUE_DT)
+||decode(to_char(nvl(A.APPR_RATE_EFF_DATE4,'30000101'),'yyyymmdd'),'30000101','00000000', A.APPR_RATE_EFF_DATE4)
+||decode(to_char(nvl(A.APPR_RATE_EFF_DATE5,'30000101'),'yyyymmdd'),'30000101','00000000', A.APPR_RATE_EFF_DATE5)
+||nvl(A.APPR_RATING_TYPE1,' ')
+||nvl(A.APPR_RATING_TYPE2,' ')
+||nvl(A.APPR_RATING_TYPE3,' ')
+||nvl(A.APPR_RATING_TYPE4,' ')
+||nvl(A.APPR_RATING_TYPE5,' ')
+||rpad(nvl(A.PAYROLL_OFF_ID,' '),5)
+||nvl(A.SEP_PKG_STATUS_IND,' ')
+||rpad(nvl(A.ORG_STRUCT_ID_SHRED,' '),7)
+||lpad(nvl(A.PSN_AUTH_LOCALITY_PCT,0) * 100,4,'0')
+||'  '
+||nvl(A.NAF_RETIRMNT_INDCATR,' ')
+||rpad(nvl(A.SEP_PKG_REGISTER_NR,' '),7)
+||decode(to_char(nvl(A.DT_AWD_APPR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_AWD_APPR)
+||decode(to_char(nvl(A.LANG_PROF_TEST_DT1,'30000101'),'yyyymmdd'),'30000101','00000000', A.LANG_PROF_TEST_DT1)
+||decode(to_char(nvl(A.LANG_PROF_TEST_DT2,'30000101'),'yyyymmdd'),'30000101','00000000', A.LANG_PROF_TEST_DT2)
+||decode(to_char(nvl(A.LANG_PROF_TEST_DT3,'30000101'),'yyyymmdd'),'30000101','00000000', A.LANG_PROF_TEST_DT3)
+||decode(to_char(nvl(A.LANG_PROF_TEST_DT4,'30000101'),'yyyymmdd'),'30000101','00000000', A.LANG_PROF_TEST_DT4)
+||decode(to_char(nvl(A.DT_RT_PKG_CIV_PAY_TO_OPM,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RT_PKG_CIV_PAY_TO_OPM)
+||decode(to_char(nvl(A.DT_RT_PKG_CCPO_TO_CIVPAY,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_RT_PKG_CCPO_TO_CIVPAY)
+||rpad(nvl(A.INSTRUCTIONAL_PROGRAM,' '),6)
+||rpad(nvl(A.ADR_MAIL_ZIP,' '),9)
+||' '
+||decode(to_char(nvl(A.DT_POSN_ESTB,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_POSN_ESTB)
+||decode(to_char(nvl(A.DT_TEMP_APPT_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_TEMP_APPT_EXPIR)
+||decode(to_char(nvl(A.DT_LWOP_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_LWOP_EXPIR)
+||decode(to_char(nvl(A.DT_TEMP_PROM_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_TEMP_PROM_EXPIR)
+||decode(to_char(nvl(A.DOB,'30000101'),'yyyymmdd'),'30000101','00000000', A.DOB)
+||decode(to_char(nvl(A.DT_LAST_PROM,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_LAST_PROM)
+||rpad(nvl(A.SKL1,' '),3)
+||rpad(nvl(A.SKL1_SHR,' '),3)
+||rpad(nvl(A.SKL1_SUB,' '),3)
+||rpad(nvl(A.SKL2,' '),3)
+||rpad(nvl(A.SKL2_SHR,' '),3)
+||rpad(nvl(A.SKL2_SUB,' '),3)
+||rpad(nvl(A.SKL3,' '),3)
+||rpad(nvl(A.SKL3_SHR,' '),3)
+||rpad(nvl(A.SKL3_SUB,' '),3)
+||decode(to_char(nvl(A.DT_LWOP_SU_FUR_BEG,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_LWOP_SU_FUR_BEG)
+||decode(to_char(nvl(A.DT_PD_CLASSIFIED,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_PD_CLASSIFIED)
+||lpad(nvl(A.AR_OVERBASE_COLA,0),4,'0')
+||decode(to_char(nvl(A.DT_DETAIL_ENDS_EMP,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_DETAIL_ENDS_EMP)
+||decode(to_char(nvl(A.DT_FURLO_ENDS,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_FURLO_ENDS)
+||decode(to_char(nvl(A.DT_TEMP_REASMT_EXP,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_TEMP_REASMT_EXP)              
+||'00000000'
+||decode(to_char(nvl(A.DT_SUSP_OVER_30DA_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_SUSP_OVER_30DA_EXPIR)
+||decode(to_char(nvl(A.DT_SUSP_30DA_OR_LSS_EXPIR,'30000101'),'yyyymmdd'),'30000101','00000000', A.DT_SUSP_30DA_OR_LSS_EXPIR)
+||rpad(nvl(A.LOCAL_ADDR_LINE_1,' '),29)
+||rpad(nvl(A.LOCAL_ADDR_CITY,' '),19)
+||rpad(nvl(A.LOCAL_ADDR_STATE,' '),2)
+||lpad(nvl(A.AVAILABILITY_PAY,0),5,'0')
+||rpad(nvl(B.OLD_REGION_CODE,' '),3)
+||'   '
+FROM CPMF A,
+HQACPERS_OWNER.REGION_CODES B
+WHERE A.ASOF_ID = &asofid
+AND A.REGION = B.REGION_CODE 
+AND A.AGCY_CD = 'AR' 
+AND A.AGCY_SUB_ELM_FLAG = 'MT' 
+ORDER BY A.SSN;
+spool off;
+set heading on;
+set feedback on;
+set verify on;
+set termout on;

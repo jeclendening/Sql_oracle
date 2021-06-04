@@ -1,0 +1,62 @@
+/* SQL script zma50a1.sql
+-- Purpose: To create a sequential file zma50a1.meyymm Extract
+--
+-- Written by:    Alex Soto & Jeffrey Clendening
+-- 
+-- date written: July 2005
+--
+--HISTORY OF MODIFICATIONS
+-- DATE   	 PROGRAMMER	   DESCRIPTION
+--========	 ==========	   =============================================
+--
+--
+--
+--===============================================================================
+*/
+accept asofcur prompt 'Enter asofcur (i.e. me0506) for file zma50a1: ';
+accept asofid prompt 'Enter asofid (i.e. yyyymm) for CPMF record selection: ';
+
+alter session set nls_date_format = 'yyyymmdd';
+
+set heading off
+set feedback off
+set linesize 280
+set pagesize 0
+set termout off
+set verify off
+
+spool /hqacpers/reports/extracts/zma50a1.&asofcur;
+
+SELECT 
+rpad(nvl(A.AR_PSN_CAR_PGM_CD,' '),2)
+||rpad(nvl(A.NAME_PERS,' '),27)
+||rpad(substr(nvl(B.LAST_NAME,' '),1,35),35)
+||rpad(substr(nvl(B.FIRST_NAME,' '),1,35),35)
+||rpad(nvl(A.SSN,' '),9,' ')
+||rpad(nvl(A.CURR_PAY_PLAN,' '),2)
+||rpad(nvl(A.OCUPTNL_SRS,' '),4)
+||lpad(nvl(A.POSN_GR_CIV,'0'),2,'0')
+||rpad(nvl(A.POSN_TITLE,' '),54)
+||nvl(A.POS_TEN,' ')
+||rpad(nvl(A.AGCY_SUB_ELM_FLAG,' '),2)
+||rpad(nvl(A.UNIT_ID_CODE,' '),6)
+||rpad(nvl(C.AGCY_SUB_DESCRIPTION,' '),27)
+||rpad(nvl(A.GSA_GEOLOC,' '),9)
+||nvl(A.RACE_NATIONAL_ORIGIN,' ')
+||rpad(nvl(A.LOCAL_ADDR_LINE_1,' '),29)
+||rpad(nvl(A.LOCAL_ADDR_STATE,' '),2)
+||rpad(nvl(A.LOCAL_ADDR_CITY,' '),19)
+||rpad(nvl(A.ADR_MAIL_ZIP,' '),9)
+FROM CPMF A,
+EMPLOYEE B,
+ACPERS_REPORTS.COMMAND_CODES C
+WHERE  A.ASOF_ID = &asofid
+AND ( A.AR_PSN_CAR_PGM_CD = '34' OR A.OCUPTNL_SRS = '0854')
+AND A.PERSON_ID = B.PERSON_ID(+)
+AND C.AGCY_SUB_ELM_FLAG = A.AGCY_SUB_ELM_FLAG
+ORDER BY A.POSN_GR_CIV, LAST_NAME;
+spool off;
+set heading on;
+set feedback on;
+set verify on;
+set termout on;

@@ -1,0 +1,73 @@
+/* Script name: zmd57a1.sql
+
+   Description: Main CPMF extract file.
+
+   Programmer:  Andy Bauwens
+
+   Date:        June 2003
+
+*/
+
+-- Modification History:
+--
+-- DATE         PROGRAMMER    DESCRIPTION
+-- -----------  ------------  ---------------------------------------------------
+-- 21-Jun-2004  Andy Bauwens  Added conversion for rating_of_rcd code.
+-- 02-Aug-2004  Andy Bauwens  Adjusted basic_salary_rate to include cents.
+--                            Had to raise linesize from 1000 to 1001 because 
+--                            something in the above change makes the file bigger 
+--                            even though there is no physical column change.
+--                            Go figure... Maybe it is the to_char function?
+--
+-- 9-Oct-2004   Bauwens       Change the spool statement. Remove hqacpers_owner
+--                            owner name from all sql statements except the
+--                            combined_strength table. Let synonyms do the work.
+--
+-- 15-Dec-2004 Andy Bauwens   Change nvl(ssn) from # fill to spaces.
+--
+-- 13-Jan-2005 Andy Bauwens   exclude any blank ssn's.
+-- 18-Jan-2005 Andy Bauwens  Change spool statement to new directory path.
+--
+-- 02-Jun-2005 Jeffrey clendening change sql tro run under usr37 
+
+
+accept asofcur prompt 'Enter asofcur (i.e. me0212) for file zmd57a1: ';
+accept asofid prompt 'Enter asofid (i.e. yyyymm) for CPMF record selection: ';
+
+set heading off
+set feedback off
+set linesize 80
+set pagesize 0
+set verify off
+set termout off
+ 
+alter session set nls_date_format = 'yyyymmdd';
+
+spool /usr37/local/development/reports/outputs/zma34c4.&asofcur;
+
+SELECT
+rpad(nvl(A.SSN,' '),9,' ')                       
+||rpad(nvl(A.NAME_PERS,' '),27)
+||nvl(A.SEX,' ')
+||decode(to_char(nvl(A.DOB,'30000101'),'yyyymmdd'),'30000101','00000000', A.DOB)
+||lpad(nvl(A.POSN_GR_CIV,'0'),2,'0')
+||lpad(nvl(A.STEP_IN_GRADE_CIV,'0'),2,'0')
+||rpad(nvl(A.AGCY_CD,' '),2)
+||rpad(nvl(A.UNIT_ID_CODE,' '),6)
+||rpad(nvl(A.GSA_GEOLOC,' '),9)
+||rpad(nvl(A.CURR_PAY_PLAN,' '),2)
+||rpad(nvl(A.OCUPTNL_SRS,' '),4)
+||rpad(nvl(A.PAS_PERS_OFF_ID,' '),4)
+||'    '
+FROM CPMF A,
+HQACPERS_OWNER.REGION_CODES B
+WHERE A.ASOF_ID = &asofid
+AND A.REGION = B.REGION_CODE 
+AND A.AGCY_CD = 'AR' 
+AND A.ACT_IND < '5' 
+ORDER BY A.SSN;
+spool off;
+set heading on;
+set feedback on;
+set verify on;
+set termout on;

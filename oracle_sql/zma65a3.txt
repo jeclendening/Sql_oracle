@@ -1,0 +1,58 @@
+/* SQL script zma65a3.sql
+-- 
+-- 
+-- Program Name zma65a3.sql
+--
+-- Written By: Jeffrey Clendening
+-- 
+-- HISTORY OF MODIFICATIONS
+-- DATE          PROGRAMMER        DESCRIPTION
+-- ========       ==========        =============================================
+--
+--
+--
+-- ===============================================================================
+*/
+ 
+accept asofcur prompt 'Enter asofcur (i.e. me0506) for file zmd42a1: ';
+
+drop table jeff_quarterly_sf113_a;
+
+create table jeff_quarterly_sf113_a
+ as
+select person_id, ssn, employee_type, agcy_cd, (substr(gsa_geoloc,1,2)) as GSA_LOC,
+       ar_func_desg, citizenship, act_ind
+from hqacpers_owner.combined_strength
+where (agcy_cd = 'AR') and (person_id is not null) 
+and (EMPLOYEE_TYPE < '5' or EMPLOYEE_TYPE = '8') and (AR_FUNC_DESG = '1')
+and (CITIZENSHIP = '1') and (ACT_IND = '1');
+
+
+create index jeff_quarterly_sf113_a_idx1 on jeff_quarterly_sf113_a (person_id);
+
+
+commit;
+
+set heading off
+set feedback off
+set linesize 80
+set pagesize 0
+set termout off
+set verify off
+
+grant select on jeff_quarterly_sf113_a to public;
+
+spool /hqacpers/reports/outputs/zma65a3.&asofcur;
+
+select GSA_LOC, COUNT(*)
+from jeff_quarterly_sf113_a 
+where (GSA_LOC between 'AA' and 'ZZ') 
+group by GSA_LOC;
+
+spool off;
+set heading on;
+set feedback on;
+set verify on;
+set termout on;
+
+
